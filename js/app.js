@@ -103,6 +103,21 @@ window.KKApp = (function () {
     return code === "MetaRight" || code === "OSRight";
   }
 
+  function isEnterKey(e) {
+    return (
+      e.key === "Enter" ||
+      e.code === "Enter" ||
+      e.code === "NumpadEnter"
+    );
+  }
+
+  function blurActive() {
+    var ae = document.activeElement;
+    if (ae && ae !== document.body && typeof ae.blur === "function") {
+      ae.blur();
+    }
+  }
+
   function onKeyUp(e) {
     if (isRightGuiCode(e.code)) rightGuiDown = false;
   }
@@ -198,6 +213,7 @@ window.KKApp = (function () {
   function showHub() {
     stopListening();
     clearTimer();
+    if (el.overlay) el.overlay.classList.add("hidden");
     el.hub.classList.remove("hidden");
     el.session.classList.add("hidden");
     el.settings.classList.add("hidden");
@@ -262,9 +278,7 @@ window.KKApp = (function () {
     if (state.settings.tipSeen) tip.classList.add("hidden");
     else tip.classList.remove("hidden");
     $("btn-dismiss-tip").onclick = function () {
-      state.settings.tipSeen = true;
-      S.save(state);
-      tip.classList.add("hidden");
+      dismissTip();
     };
   }
 
@@ -641,6 +655,14 @@ window.KKApp = (function () {
     clearLineTimer();
   }
 
+  function dismissTip() {
+    var tip = $("tip-panel");
+    if (!tip) return;
+    state.settings.tipSeen = true;
+    S.save(state);
+    tip.classList.add("hidden");
+  }
+
   function onKey(e) {
     if (isRightGuiCode(e.code)) rightGuiDown = true;
     if (handleRightGuiChord(e)) return;
@@ -649,8 +671,14 @@ window.KKApp = (function () {
     var typingInField = tag === "TEXTAREA" || tag === "INPUT";
 
     if (!el.overlay.classList.contains("hidden")) {
-      handleOverlayKeys(e);
-      return;
+      var modalOk = $("modal-ok");
+      if (!modalOk) {
+        el.overlay.classList.add("hidden");
+        // fall through — treat as hub/settings below
+      } else {
+        handleOverlayKeys(e);
+        return;
+      }
     }
 
     if (listening && engine) {
@@ -672,7 +700,7 @@ window.KKApp = (function () {
       if (
         !el.settings.classList.contains("hidden") &&
         e.ctrlKey &&
-        e.key === "Enter"
+        isEnterKey(e)
       ) {
         e.preventDefault();
         startPasteDrill();
@@ -684,7 +712,7 @@ window.KKApp = (function () {
       if (e.key === "Escape") {
         e.preventDefault();
         showHub();
-      } else if (e.ctrlKey && e.key === "Enter") {
+      } else if (e.ctrlKey && isEnterKey(e)) {
         e.preventDefault();
         startPasteDrill();
       }
@@ -694,17 +722,17 @@ window.KKApp = (function () {
     if (!el.hub.classList.contains("hidden")) {
       var tip = $("tip-panel");
       var tipOpen = tip && !tip.classList.contains("hidden");
-      if (tipOpen && (e.key === "Enter" || e.key === "Escape")) {
+      if (tipOpen && (isEnterKey(e) || e.key === "Escape")) {
         e.preventDefault();
-        state.settings.tipSeen = true;
-        S.save(state);
-        tip.classList.add("hidden");
-        if (e.key === "Escape") return;
-        startSession();
+        e.stopPropagation();
+        dismissTip();
+        blurActive();
         return;
       }
-      if (e.key === "Enter" || e.key === "c" || e.key === "C") {
+      if (isEnterKey(e) || e.key === "c" || e.key === "C") {
         e.preventDefault();
+        e.stopPropagation();
+        blurActive();
         startSession();
       } else if (e.key === "," || e.key === "s" || e.key === "S") {
         // plain s = settings only when not using RGUI (handled above)
@@ -723,7 +751,7 @@ window.KKApp = (function () {
       return;
     }
     var modalOk = $("modal-ok");
-    if ((e.key === "Enter" || e.key === " ") && modalOk) {
+    if ((isEnterKey(e) || e.key === " ") && modalOk) {
       e.preventDefault();
       modalOk.click();
     }
