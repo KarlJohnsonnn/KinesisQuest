@@ -109,8 +109,9 @@ No build step. No backend. Classic script tags so it runs with a simple local se
 
 ## Roadmap ideas
 
-- Deeper **Layer Gate** lessons for mouse-less nav (ZMK / Clique)
-- Optional layout profiles beyond stock QWERTY
+- **Layer Gate — home-row symbol layer** (planned): map `()[]{}` and `@ # $ % ^ & * - _ = +` onto home-row keys via a ZMK/Clique layer so coding stays on-home. Spec: [`docs/layer-home-symbols.md`](docs/layer-home-symbols.md)
+- Mouse-less nav / editor chords on a second layer
+- Optional layout profiles beyond stock QWERTY once Layer Gate exists
 - Richer figure/IDE workflow drills
 
 PRs and issues welcome — especially from new Kinesis users sharing what confused them in week one.

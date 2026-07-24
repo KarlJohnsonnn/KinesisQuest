@@ -52,8 +52,8 @@ window.KKCurriculum = (function () {
     {
       id: "layers",
       name: "Layer Gate",
-      blurb: "Mouse-less nav layers — remap later",
-      keys: "",
+      blurb: "Home-row ()[]{} @#$… layer — after stock map sticks",
+      keys: "()[]{}@#$%^&*-_=+",
       stub: true,
     },
   ];
