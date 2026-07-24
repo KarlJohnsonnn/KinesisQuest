@@ -1,5 +1,50 @@
 /* Typing engine: must-correct, per-key stats */
 window.KKEngine = (function () {
+  /** Keep only typeable ASCII (+ newline/backspace). Fancy dashes → ASCII. */
+  function sanitizeTypingText(s) {
+    var map = {
+      "\u2014": "--", // em dash
+      "\u2015": "--", // horizontal bar
+      "\u2013": "-", // en dash
+      "\u2212": "-", // minus
+      "\u2010": "-",
+      "\u2011": "-",
+      "\u2012": "-",
+      "\u2018": "'",
+      "\u2019": "'",
+      "\u201C": '"',
+      "\u201D": '"',
+      "\u00B7": " ", // middle dot
+      "\u2022": "*",
+      "\u2026": "...",
+      "\u00A0": " ",
+      "\u202F": " ",
+      "\u2009": " ",
+      "\u200B": "", // zero-width space
+      "\uFEFF": "",
+    };
+    var out = "";
+    var i;
+    for (i = 0; i < s.length; i++) {
+      var c = s.charAt(i);
+      if (map.hasOwnProperty(c)) {
+        out += map[c];
+        continue;
+      }
+      var o = c.charCodeAt(0);
+      if (c === "\n" || c === "\b") {
+        out += c;
+        continue;
+      }
+      if (o >= 32 && o <= 126) {
+        out += c;
+        continue;
+      }
+      // drop any other non-typeable glyph
+    }
+    return out;
+  }
+
   function create(text, hooks) {
     hooks = hooks || {};
     var target = sanitizeTypingText(String(text));
@@ -9,19 +54,6 @@ window.KKEngine = (function () {
     var startedAt = null;
     var finished = false;
     var lastMiss = false;
-
-    function sanitizeTypingText(s) {
-      return String(s)
-        .replace(/\u2014/g, "--") // em dash —
-        .replace(/\u2013/g, "-") // en dash –
-        .replace(/\u2212/g, "-") // minus −
-        .replace(/\u2010/g, "-") // hyphen ‐
-        .replace(/\u2011/g, "-") // non-breaking hyphen
-        .replace(/\u2012/g, "-") // figure dash
-        .replace(/\u2015/g, "--") // horizontal bar
-        .replace(/\u2026/g, "...") // ellipsis …
-        .replace(/\u00A0/g, " "); // nbsp
-    }
 
     function currentChar() {
       return target.charAt(index);
@@ -150,5 +182,5 @@ window.KKEngine = (function () {
     };
   }
 
-  return { create: create };
+  return { create: create, sanitizeTypingText: sanitizeTypingText };
 })();

@@ -423,6 +423,9 @@ button.ghost {
   font-size: clamp(1.15rem, 2.4vw, 1.55rem);
   line-height: 1.65;
   word-break: break-word;
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "clig" 0, "calt" 0;
+  -webkit-font-smoothing: antialiased;
 }
 
 .prompt-text .done {

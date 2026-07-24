@@ -16,7 +16,7 @@ window.KKCurriculum = (function () {
     {
       id: "thumbs",
       name: "Thumb Essentials",
-      blurb: "Space · Bksp · Enter -- stay on keys",
+      blurb: "Space | Bksp | Enter -- stay on keys",
       keys: " ",
     },
     {
@@ -40,13 +40,13 @@ window.KKCurriculum = (function () {
     {
       id: "write",
       name: "Write Desk",
-      blurb: "Mail · SMS · LLM prompts · articles",
+      blurb: "Mail | SMS | LLM prompts | articles",
       keys: "abcdefghijklmnopqrstuvwxyz .,!?'-",
     },
     {
       id: "code",
       name: "Code Forge",
-      blurb: "Fortran · Python · bash · md · LaTeX",
+      blurb: "Fortran | Python | bash | md | LaTeX",
       keys: "()[]{}=_<>\\",
     },
     {
@@ -269,6 +269,9 @@ window.KKCurriculum = (function () {
   }
 
   function sanitizeTypingText(s) {
+    if (window.KKEngine && window.KKEngine.sanitizeTypingText) {
+      return window.KKEngine.sanitizeTypingText(s);
+    }
     return String(s)
       .replace(/\u2014/g, "--")
       .replace(/\u2013/g, "-")
