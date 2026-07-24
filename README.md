@@ -1,4 +1,4 @@
-# AdvantageProTutor (Kinesis Quest)
+# Kinesis Quest
 
 **Learn the Kinesis Advantage360 Pro without hating the first weeks.**
 
