@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kinesis Quest</title>
+    <link rel="stylesheet" href="css/quest.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand">Kinesis <span>Quest</span></div>
+        <div class="status-quiet">
+          <span id="stat-xp">0 XP</span>
+          <span id="stat-streak">Streak 0</span>
+          <span id="stat-duration">10 min</span>
+        </div>
+      </header>
+
+      <!-- HUB -->
+      <section id="view-hub" class="view">
+        <div class="hero">
+          <h1>Kinesis <em>Quest</em></h1>
+          <p>
+            Retrain Advantage360 muscle memory for science coding — Fortran, Python, bash,
+            Markdown, LaTeX — and keep hands on the keys (mouse optional).
+          </p>
+          <div class="cta-row">
+            <button type="button" class="primary" id="btn-continue">Continue last quest <kbd>Enter</kbd></button>
+            <button type="button" id="btn-settings">Settings / save <kbd>,</kbd></button>
+          </div>
+          <p class="kbd-hint">Keyboard-first: no mouse needed for hub or sessions.</p>
+        </div>
+
+        <div id="territory-map" class="map" aria-label="Territory map"></div>
+
+        <div class="tips" id="tip-panel">
+          <h2>Practice rule</h2>
+          <ul>
+            <li>Use the physical Adv360 for every quest — not the MacBook keys.</li>
+            <li>Goal: hands stay on KK. Thumbs own Space, Bksp, Enter; pinky rests.</li>
+            <li>Later Layer Gate: nav/editor chords so trackpad stays rare.</li>
+            <li>Paste real snippets (model loops, plotting, shell, LaTeX) in Settings.</li>
+            <li>Pain Stop keeps streak. Never grind through right-wrist pain.</li>
+            <li>Freeze remaps while learning stock QWERTY positions.</li>
+          </ul>
+          <div class="footer-actions">
+            <button type="button" class="ghost" id="btn-dismiss-tip">Got it <kbd>Enter</kbd></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SESSION -->
+      <section id="view-session" class="view hidden">
+        <div class="session-bar">
+          <div>
+            <div class="phase-label" id="phase-label">Warm-up</div>
+            <div class="session-meta">
+              <span id="session-territory">Home Wells</span>
+              <span>Time <strong id="session-timer">10:00</strong></span>
+              <span>Acc <strong id="session-acc">100%</strong></span>
+              <span><strong id="session-wpm">0</strong> WPM</span>
+            </div>
+          </div>
+          <div class="cta-row">
+            <button type="button" class="danger" id="btn-pain">Pain Stop <kbd>^⇧P</kbd></button>
+            <button type="button" class="ghost" id="btn-end">End <kbd>^⇧E</kbd></button>
+          </div>
+        </div>
+
+        <div class="prompt-box" aria-live="polite">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+
+        <div class="kb-wrap" aria-hidden="true">
+          <svg id="kb-svg" viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg">
+            <!-- Left well -->
+            <rect class="kb-key" data-key="Digit1" x="40" y="30" width="36" height="28" rx="4" />
+            <text class="kb-label" x="52" y="48">1</text>
+            <rect class="kb-key" data-key="Digit2" x="82" y="30" width="36" height="28" rx="4" />
+            <text class="kb-label" x="94" y="48">2</text>
+            <rect class="kb-key" data-key="Digit3" x="124" y="30" width="36" height="28" rx="4" />
+            <text class="kb-label" x="136" y="48">3</text>
+            <rect class="kb-key" data-key="Digit4" x="166" y="30" width="36" height="28" rx="4" />
+            <text class="kb-label" x="178" y="48">4</text>
+            <rect class="kb-key" data-key="Digit5" x="208" y="30" width="36" height="28" rx="4" />
+            <text class="kb-label" x="220" y="48">5</text>
+
+            <rect class="kb-key" data-key="KeyQ" x="55" y="68" width="36" height="28" rx="4" />
+            <text class="kb-label" x="67" y="86">Q</text>
+            <rect class="kb-key" data-key="KeyW" x="97" y="68" width="36" height="28" rx="4" />
+            <text class="kb-label" x="108" y="86">W</text>
+            <rect class="kb-key" data-key="KeyE" x="139" y="68" width="36" height="28" rx="4" />
+            <text class="kb-label" x="151" y="86">E</text>
+            <rect class="kb-key" data-key="KeyR" x="181" y="68" width="36" height="28" rx="4" />
+            <text class="kb-label" x="193" y="86">R</text>
+            <rect class="kb-key" data-key="KeyT" x="223" y="68" width="36" height="28" rx="4" />
+            <text class="kb-label" x="235" y="86">T</text>
+
+            <rect class="kb-key" data-key="KeyA" x="70" y="106" width="36" height="28" rx="4" />
+            <text class="kb-label" x="82" y="124">A</text>
+            <rect class="kb-key" data-key="KeyS" x="112" y="106" width="36" height="28" rx="4" />
+            <text class="kb-label" x="124" y="124">S</text>
+            <rect class="kb-key" data-key="KeyD" x="154" y="106" width="36" height="28" rx="4" />
+            <text class="kb-label" x="166" y="124">D</text>
+            <rect class="kb-key" data-key="KeyF" x="196" y="106" width="36" height="28" rx="4" />
+            <text class="kb-label" x="208" y="124">F</text>
+            <rect class="kb-key" data-key="KeyG" x="238" y="106" width="36" height="28" rx="4" />
+            <text class="kb-label" x="250" y="124">G</text>
+
+            <rect class="kb-key" data-key="KeyZ" x="85" y="144" width="36" height="28" rx="4" />
+            <text class="kb-label" x="97" y="162">Z</text>
+            <rect class="kb-key" data-key="KeyX" x="127" y="144" width="36" height="28" rx="4" />
+            <text class="kb-label" x="139" y="162">X</text>
+            <rect class="kb-key" data-key="KeyC" x="169" y="144" width="36" height="28" rx="4" />
+            <text class="kb-label" x="181" y="162">C</text>
+            <rect class="kb-key" data-key="KeyV" x="211" y="144" width="36" height="28" rx="4" />
+            <text class="kb-label" x="223" y="162">V</text>
+            <rect class="kb-key" data-key="KeyB" x="253" y="144" width="36" height="28" rx="4" />
+            <text class="kb-label" x="265" y="162">B</text>
+
+            <!-- Right well -->
+            <rect class="kb-key" data-key="Digit6" x="560" y="30" width="36" height="28" rx="4" />
+            <text class="kb-label" x="572" y="48">6</text>
+            <rect class="kb-key" data-key="Digit7" x="602" y="30" width="36" height="28" rx="4" />
+            <text class="kb-label" x="614" y="48">7</text>
+            <rect class="kb-key" data-key="Digit8" x="644" y="30" width="36" height="28" rx="4" />
+            <text class="kb-label" x="656" y="48">8</text>
+            <rect class="kb-key" data-key="Digit9" x="686" y="30" width="36" height="28" rx="4" />
+            <text class="kb-label" x="698" y="48">9</text>
+            <rect class="kb-key" data-key="Digit0" x="728" y="30" width="36" height="28" rx="4" />
+            <text class="kb-label" x="740" y="48">0</text>
+
+            <rect class="kb-key" data-key="KeyY" x="545" y="68" width="36" height="28" rx="4" />
+            <text class="kb-label" x="557" y="86">Y</text>
+            <rect class="kb-key" data-key="KeyU" x="587" y="68" width="36" height="28" rx="4" />
+            <text class="kb-label" x="599" y="86">U</text>
+            <rect class="kb-key" data-key="KeyI" x="629" y="68" width="36" height="28" rx="4" />
+            <text class="kb-label" x="643" y="86">I</text>
+            <rect class="kb-key" data-key="KeyO" x="671" y="68" width="36" height="28" rx="4" />
+            <text class="kb-label" x="683" y="86">O</text>
+            <rect class="kb-key" data-key="KeyP" x="713" y="68" width="36" height="28" rx="4" />
+            <text class="kb-label" x="725" y="86">P</text>
+
+            <rect class="kb-key" data-key="KeyH" x="530" y="106" width="36" height="28" rx="4" />
+            <text class="kb-label" x="542" y="124">H</text>
+            <rect class="kb-key" data-key="KeyJ" x="572" y="106" width="36" height="28" rx="4" />
+            <text class="kb-label" x="584" y="124">J</text>
+            <rect class="kb-key" data-key="KeyK" x="614" y="106" width="36" height="28" rx="4" />
+            <text class="kb-label" x="626" y="124">K</text>
+            <rect class="kb-key" data-key="KeyL" x="656" y="106" width="36" height="28" rx="4" />
+            <text class="kb-label" x="668" y="124">L</text>
+            <rect class="kb-key" data-key="Semicolon" x="698" y="106" width="36" height="28" rx="4" />
+            <text class="kb-label" x="710" y="124">;</text>
+
+            <rect class="kb-key" data-key="KeyN" x="545" y="144" width="36" height="28" rx="4" />
+            <text class="kb-label" x="557" y="162">N</text>
+            <rect class="kb-key" data-key="KeyM" x="587" y="144" width="36" height="28" rx="4" />
+            <text class="kb-label" x="598" y="162">M</text>
+            <rect class="kb-key" data-key="Comma" x="629" y="144" width="36" height="28" rx="4" />
+            <text class="kb-label" x="641" y="162">,</text>
+            <rect class="kb-key" data-key="Period" x="671" y="144" width="36" height="28" rx="4" />
+            <text class="kb-label" x="685" y="162">.</text>
+            <rect class="kb-key" data-key="Slash" x="713" y="144" width="36" height="28" rx="4" />
+            <text class="kb-label" x="725" y="162">/</text>
+            <rect class="kb-key" data-key="Minus" x="755" y="144" width="36" height="28" rx="4" />
+            <text class="kb-label" x="767" y="162">-</text>
+            <rect class="kb-key" data-key="Equal" x="797" y="144" width="36" height="28" rx="4" />
+            <text class="kb-label" x="808" y="162">=</text>
+            <rect class="kb-key" data-key="Quote" x="755" y="106" width="36" height="28" rx="4" />
+            <text class="kb-label" x="767" y="124">'</text>
+            <rect class="kb-key" data-key="BracketLeft" x="797" y="68" width="36" height="28" rx="4" />
+            <text class="kb-label" x="810" y="86">[</text>
+            <rect class="kb-key" data-key="BracketRight" x="839" y="68" width="36" height="28" rx="4" />
+            <text class="kb-label" x="852" y="86">]</text>
+            <rect class="kb-key" data-key="Backslash" x="839" y="106" width="36" height="28" rx="4" />
+            <text class="kb-label" x="850" y="124">\</text>
+
+            <!-- Thumb clusters -->
+            <rect class="kb-key" data-key="Backspace" x="120" y="210" width="70" height="36" rx="6" />
+            <text class="kb-label thumb-label" x="132" y="232">Bksp</text>
+            <rect class="kb-key" data-key="Escape" x="200" y="210" width="50" height="36" rx="6" />
+            <text class="kb-label thumb-label" x="210" y="232">Esc</text>
+
+            <rect class="kb-key" data-key="Enter" x="580" y="210" width="70" height="36" rx="6" />
+            <text class="kb-label thumb-label" x="596" y="232">Enter</text>
+            <rect class="kb-key" data-key="Space" x="660" y="210" width="90" height="36" rx="6" />
+            <text class="kb-label thumb-label" x="686" y="232">Space</text>
+
+            <text class="kb-label" x="310" y="280" fill="#8aa0ae" style="font-size:11px">
+              Adv360-style wells · thumbs highlighted in amber
+            </text>
+          </svg>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="view-settings" class="view hidden">
+        <div class="panel">
+          <h2>Settings</h2>
+          <div class="settings-grid">
+            <label><input type="checkbox" id="chk-sound" /> Sound clicks</label>
+            <label><input type="checkbox" id="chk-guide" checked /> Finger / key guide (SVG)</label>
+            <label><input type="checkbox" id="chk-motion" /> Reduce motion</label>
+          </div>
+          <div class="footer-actions">
+            <button type="button" id="btn-export">Export save JSON</button>
+            <button type="button" id="btn-import">Import save JSON</button>
+            <button type="button" class="danger" id="btn-reset">Reset progress</button>
+            <button type="button" class="primary" id="btn-settings-back">Back to hub</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Real-work paste drill</h2>
+          <p style="color: var(--muted); margin-top: 0">
+            Paste real work: Fortran loop, Python plot, bash one-liner, Markdown notes, LaTeX.
+            Escape returns to hub.
+          </p>
+          <textarea id="paste-input" class="paste-area" placeholder="Paste Fortran / Python / bash / md / LaTeX…"></textarea>
+          <div class="footer-actions">
+            <button type="button" class="primary" id="btn-paste-drill">Start paste drill <kbd>^Enter</kbd></button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="overlay" class="overlay hidden">
+      <div class="modal" id="modal"></div>
+    </div>
+
+    <script src="js/curriculum.js"></script>
+    <script src="js/save.js"></script>
+    <script src="js/engine.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
