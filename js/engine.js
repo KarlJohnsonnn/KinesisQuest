@@ -2,13 +2,26 @@
 window.KKEngine = (function () {
   function create(text, hooks) {
     hooks = hooks || {};
-    var target = String(text);
+    var target = sanitizeTypingText(String(text));
     var index = 0;
     var misses = 0;
     var hits = 0;
     var startedAt = null;
     var finished = false;
     var lastMiss = false;
+
+    function sanitizeTypingText(s) {
+      return String(s)
+        .replace(/\u2014/g, "--") // em dash —
+        .replace(/\u2013/g, "-") // en dash –
+        .replace(/\u2212/g, "-") // minus −
+        .replace(/\u2010/g, "-") // hyphen ‐
+        .replace(/\u2011/g, "-") // non-breaking hyphen
+        .replace(/\u2012/g, "-") // figure dash
+        .replace(/\u2015/g, "--") // horizontal bar
+        .replace(/\u2026/g, "...") // ellipsis …
+        .replace(/\u00A0/g, " "); // nbsp
+    }
 
     function currentChar() {
       return target.charAt(index);

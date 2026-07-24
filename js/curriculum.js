@@ -52,7 +52,7 @@ window.KKCurriculum = (function () {
     {
       id: "layers",
       name: "Layer Gate",
-      blurb: "Home-row ()[]{} @#$… layer -- after stock map sticks",
+      blurb: "Home-row ()[]{} @#$... layer -- after stock map sticks",
       keys: "()[]{}@#$%^&*-_=+",
       stub: true,
     },
@@ -248,7 +248,7 @@ window.KKCurriculum = (function () {
   }
 
   function applyDifficulty(text, difficulty) {
-    text = String(text).replace(/\u2014/g, "--");
+    text = sanitizeTypingText(String(text));
     if (difficulty === "nightmare") {
       return (
         text +
@@ -266,6 +266,19 @@ window.KKCurriculum = (function () {
       );
     }
     return text;
+  }
+
+  function sanitizeTypingText(s) {
+    return String(s)
+      .replace(/\u2014/g, "--")
+      .replace(/\u2013/g, "-")
+      .replace(/\u2212/g, "-")
+      .replace(/\u2010/g, "-")
+      .replace(/\u2011/g, "-")
+      .replace(/\u2012/g, "-")
+      .replace(/\u2015/g, "--")
+      .replace(/\u2026/g, "...")
+      .replace(/\u00A0/g, " ");
   }
 
   function durationForXp(xp) {
