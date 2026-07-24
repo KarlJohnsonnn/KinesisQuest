@@ -13,6 +13,10 @@ window.KKApp = (function () {
   var phaseStats = { hits: 0, misses: 0 };
   var sessionAcc = [];
   var listening = false;
+  var phaseText = "";
+  var lineTimerId = null;
+  var sessionRelics = 0;
+  var lastPlatinumNote = null;
 
   var el = {};
 
@@ -22,6 +26,14 @@ window.KKApp = (function () {
 
   function init() {
     state = S.load();
+    ensureProgressShape();
+    cacheEls();
+    bind();
+    applySettings();
+    showHub();
+  }
+
+  function ensureProgressShape() {
     if (!state.progress.unlocked || state.progress.unlocked.length === 0) {
       state.progress.unlocked = ["home"];
     }
@@ -29,10 +41,18 @@ window.KKApp = (function () {
       state.progress.clearsInChapter = 0;
     }
     if (!state.progress.drillBags) state.progress.drillBags = {};
-    cacheEls();
-    bind();
-    applySettings();
-    showHub();
+    if (!state.progress.difficulty) state.progress.difficulty = "normal";
+    if (!state.progress.unlockedDifficulties) {
+      state.progress.unlockedDifficulties = ["normal"];
+    }
+    if (!state.progress.completedDifficulties) {
+      state.progress.completedDifficulties = [];
+    }
+    if (!state.progress.packs) state.progress.packs = {};
+    if (!state.stats.bestTimes) state.stats.bestTimes = {};
+    if (typeof state.stats.platinumRelics !== "number") {
+      state.stats.platinumRelics = 0;
+    }
   }
 
   function cacheEls() {
@@ -42,11 +62,13 @@ window.KKApp = (function () {
     el.settings = $("view-settings");
     el.map = $("territory-map");
     el.xp = $("stat-xp");
+    el.relics = $("stat-relics");
     el.streak = $("stat-streak");
     el.duration = $("stat-duration");
     el.phase = $("phase-label");
     el.prompt = $("prompt-text");
     el.timer = $("session-timer");
+    el.lineTimer = $("line-timer");
     el.acc = $("session-acc");
     el.wpm = $("session-wpm");
     el.territory = $("session-territory");
@@ -120,9 +142,14 @@ window.KKApp = (function () {
       (durInfo.nextMin
         ? durInfo.need + " XP → " + durInfo.nextMin + " min"
         : "max");
+    if (el.relics) {
+      el.relics.textContent = (state.stats.platinumRelics || 0) + " Pt";
+      el.relics.title = "Platinum relics from new best line times";
+    }
     el.streak.textContent = "Streak " + state.sessionPlan.streak;
     el.duration.textContent = durInfo.currentMin + " min";
 
+    renderDifficultyRow();
     renderChapterProgress();
 
     el.map.innerHTML = "";
@@ -162,6 +189,73 @@ window.KKApp = (function () {
     };
   }
 
+  function renderDifficultyRow() {
+    var row = $("difficulty-row");
+    if (!row) return;
+    row.innerHTML = "";
+    var cur = state.progress.difficulty || "normal";
+    C.DIFFICULTIES().forEach(function (id) {
+      var unlocked =
+        (state.progress.unlockedDifficulties || ["normal"]).indexOf(id) !== -1;
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = C.difficultyLabel(id);
+      if (id === cur) btn.classList.add("active");
+      if (!unlocked) {
+        btn.disabled = true;
+        btn.title = "Finish previous difficulty playthrough to unlock";
+      } else {
+        btn.addEventListener("click", function () {
+          if (id === cur) return;
+          switchDifficulty(id);
+        });
+      }
+      row.appendChild(btn);
+    });
+  }
+
+  function campaignSnapshot() {
+    return {
+      territoryId: state.progress.territoryId,
+      unlocked: state.progress.unlocked.slice(),
+      completed: state.progress.completed.slice(),
+      clearsInChapter: state.progress.clearsInChapter || 0,
+      drillBags: JSON.parse(JSON.stringify(state.progress.drillBags || {})),
+      sessionIndex: state.progress.sessionIndex || 0,
+    };
+  }
+
+  function applyCampaignSnapshot(snap) {
+    state.progress.territoryId = snap.territoryId || "home";
+    state.progress.unlocked = snap.unlocked || ["home"];
+    state.progress.completed = snap.completed || [];
+    state.progress.clearsInChapter = snap.clearsInChapter || 0;
+    state.progress.drillBags = snap.drillBags || {};
+    state.progress.sessionIndex = snap.sessionIndex || 0;
+  }
+
+  function freshCampaign() {
+    return {
+      territoryId: "home",
+      unlocked: ["home"],
+      completed: [],
+      clearsInChapter: 0,
+      drillBags: {},
+      sessionIndex: 0,
+    };
+  }
+
+  function switchDifficulty(id) {
+    var cur = state.progress.difficulty || "normal";
+    if (!state.progress.packs) state.progress.packs = {};
+    state.progress.packs[cur] = campaignSnapshot();
+    state.progress.difficulty = id;
+    if (state.progress.packs[id]) applyCampaignSnapshot(state.progress.packs[id]);
+    else applyCampaignSnapshot(freshCampaign());
+    S.save(state);
+    showHub();
+  }
+
   function renderChapterProgress() {
     var box = $("chapter-progress");
     if (!box) return;
@@ -191,7 +285,9 @@ window.KKApp = (function () {
     }
 
     box.innerHTML =
-      "<h2>Chapter: " +
+      "<h2>" +
+      C.difficultyLabel(state.progress.difficulty || "normal") +
+      " · " +
       name +
       "</h2>" +
       '<p class="meta">' +
@@ -217,7 +313,9 @@ window.KKApp = (function () {
       (durInfo.nextMin
         ? " · " + durInfo.remaining + " XP to " + durInfo.nextMin + " min"
         : " · max length") +
-      ". Chapters unlock by clears + boss, not XP.</p>";
+      ". Platinum relics: " +
+      (state.stats.platinumRelics || 0) +
+      " (new best line times). Chapters unlock by clears + boss; Normal→Nightmare→Hell by full playthrough.</p>";
   }
 
   function startSession() {
@@ -227,20 +325,23 @@ window.KKApp = (function () {
       state.progress.territoryId = "write";
       tid = "write";
     }
-    if (typeof state.progress.clearsInChapter !== "number") {
-      state.progress.clearsInChapter = 0;
-    }
+    ensureProgressShape();
 
     sessionStartedAt = Date.now();
     breakNudged = false;
     sessionAcc = [];
+    sessionRelics = 0;
+    lastPlatinumNote = null;
     phaseStats = { hits: 0, misses: 0 };
     state.sessionPlan.targetDurationMin = C.durationForXp(state.stats.xp || 0);
 
     el.hub.classList.add("hidden");
     el.settings.classList.add("hidden");
     el.session.classList.remove("hidden");
-    el.territory.textContent = territoryName(tid);
+    el.territory.textContent =
+      C.difficultyLabel(state.progress.difficulty || "normal") +
+      " · " +
+      territoryName(tid);
 
     startTimer();
     beginPhase("warmup");
@@ -254,6 +355,7 @@ window.KKApp = (function () {
   function beginPhase(name) {
     phase = name;
     var tid = state.progress.territoryId || "home";
+    var diff = state.progress.difficulty || "normal";
     var text = "";
     var cp = C.chapterProgress(state);
     var doBoss = name === "boss" || (name === "main" && cp.readyBoss);
@@ -264,7 +366,7 @@ window.KKApp = (function () {
     }
 
     if (name === "warmup") {
-      el.phase.textContent = "Warm-up · weak keys";
+      el.phase.textContent = "Warm-up · mixed keys";
       text = C.warmupFromWeak(S.weakCharsForWarmup(state));
     } else if (name === "main") {
       el.phase.textContent = "Main drill · " + territoryName(tid);
@@ -273,11 +375,14 @@ window.KKApp = (function () {
     } else if (name === "checkpoint") {
       el.phase.textContent = "Checkpoint · variety";
       text = C.takeDrill(state, tid);
-      if (text.length > 72) text = text.slice(0, 72);
+      if (diff === "normal" && text.length > 90) text = text.slice(0, 90);
     } else if (name === "boss") {
       el.phase.textContent = "Boss · unlock next chapter";
-      text = C.bossFor(tid);
+      text = C.bossFor(tid, diff);
     }
+
+    phaseText = text;
+    clearLineTimer();
 
     engine = E.create(text, {
       onHit: function (ch) {
@@ -300,6 +405,7 @@ window.KKApp = (function () {
       onFinish: function (p) {
         sessionAcc.push(p.accuracy);
         updateLiveStats(p);
+        maybeAwardPlatinum(p);
         nextPhase();
       },
     });
@@ -307,6 +413,7 @@ window.KKApp = (function () {
     renderPrompt();
     updateLiveStats(engine.progress());
     highlightKey(engine.progress().current, "target");
+    startLineTimer();
     startListening();
     S.save(state);
   }
@@ -380,6 +487,70 @@ window.KKApp = (function () {
     var acc = Math.round(p.accuracy * 100);
     el.acc.textContent = acc + "%";
     el.wpm.textContent = p.wpm + " WPM";
+    if (el.lineTimer && engine) {
+      el.lineTimer.textContent = formatSec(engine.elapsedMs());
+    }
+  }
+
+  function formatSec(ms) {
+    return (ms / 1000).toFixed(1) + "s";
+  }
+
+  function startLineTimer() {
+    clearLineTimer();
+    if (el.lineTimer) el.lineTimer.textContent = "0.0s";
+    lineTimerId = setInterval(function () {
+      if (engine && el.lineTimer) {
+        el.lineTimer.textContent = formatSec(engine.elapsedMs());
+      }
+    }, 100);
+  }
+
+  function clearLineTimer() {
+    if (lineTimerId) clearInterval(lineTimerId);
+    lineTimerId = null;
+  }
+
+  function bestTimeKey() {
+    return [
+      state.progress.difficulty || "normal",
+      state.progress.territoryId || "home",
+      phase || "main",
+      C.hashText(phaseText || ""),
+    ].join("|");
+  }
+
+  function maybeAwardPlatinum(p) {
+    if (phase === "warmup") return;
+    if (!p || p.misses > 0 || p.accuracy < 0.98) return;
+    var ms = engine ? engine.elapsedMs() : 0;
+    if (ms <= 0) return;
+    if (!state.stats.bestTimes) state.stats.bestTimes = {};
+    var key = bestTimeKey();
+    var prev = state.stats.bestTimes[key];
+    if (prev != null && ms >= prev) return;
+    state.stats.bestTimes[key] = ms;
+    state.stats.platinumRelics = (state.stats.platinumRelics || 0) + 1;
+    state.stats.xp += 25;
+    sessionRelics += 1;
+    lastPlatinumNote =
+      "Platinum relic! New best " +
+      formatSec(ms) +
+      (prev != null ? " (was " + formatSec(prev) + ")" : "");
+    showPlatinumFlash(lastPlatinumNote);
+    S.save(state);
+  }
+
+  function showPlatinumFlash(msg) {
+    var old = document.querySelector(".platinum-flash");
+    if (old) old.remove();
+    var div = document.createElement("div");
+    div.className = "platinum-flash";
+    div.innerHTML = '<div class="relic">' + msg + "</div>";
+    document.body.appendChild(div);
+    setTimeout(function () {
+      div.remove();
+    }, 1600);
   }
 
   function startListening() {
@@ -388,6 +559,7 @@ window.KKApp = (function () {
 
   function stopListening() {
     listening = false;
+    clearLineTimer();
   }
 
   function onKey(e) {
@@ -526,6 +698,9 @@ window.KKApp = (function () {
           }, 0) / sessionAcc.length;
 
     var unlockedChapter = null;
+    var difficultyUnlocked = null;
+    var playthroughDone = false;
+    var previousDifficulty = null;
     var earnedXp = 0;
 
     if (completed && !pain) {
@@ -539,7 +714,11 @@ window.KKApp = (function () {
 
       if (wasBoss) {
         if (avgAcc >= C.BOSS_ACCURACY) {
-          unlockedChapter = completeChapter();
+          var result = completeChapter();
+          unlockedChapter = result.chapter;
+          difficultyUnlocked = result.difficultyUnlocked;
+          playthroughDone = result.playthroughDone;
+          previousDifficulty = result.previousDifficulty || null;
         }
       } else if (avgAcc >= C.ACCURACY_GATE) {
         state.progress.passedSessions += 1;
@@ -555,7 +734,7 @@ window.KKApp = (function () {
     if (pain) {
       showModal(
         "Pain Stop",
-        "Progress saved. Streak kept. Rest the right wrist — quest waits.",
+        "Progress saved. Streak kept. Rest the right wrist -- quest waits.",
         function () {
           showHub();
         }
@@ -568,7 +747,15 @@ window.KKApp = (function () {
       return;
     }
 
-    showSessionSummary(avgAcc, wasBoss, earnedXp, unlockedChapter);
+    showSessionSummary(
+      avgAcc,
+      wasBoss,
+      earnedXp,
+      unlockedChapter,
+      difficultyUnlocked,
+      playthroughDone,
+      previousDifficulty
+    );
   }
 
   function completeChapter() {
@@ -583,16 +770,72 @@ window.KKApp = (function () {
         state.progress.unlocked.push(next);
       }
       state.progress.territoryId = next;
-      return next;
+      return {
+        chapter: next,
+        difficultyUnlocked: null,
+        previousDifficulty: null,
+        playthroughDone: false,
+      };
     }
-    return null;
+
+    // Finished last playable chapter on this difficulty
+    var diff = state.progress.difficulty || "normal";
+    if (!state.progress.completedDifficulties) {
+      state.progress.completedDifficulties = [];
+    }
+    if (state.progress.completedDifficulties.indexOf(diff) === -1) {
+      state.progress.completedDifficulties.push(diff);
+    }
+    if (!state.progress.packs) state.progress.packs = {};
+    state.progress.packs[diff] = campaignSnapshot();
+
+    var nd = C.nextDifficulty(diff);
+    var unlockedDiff = null;
+    if (nd) {
+      if (!state.progress.unlockedDifficulties) {
+        state.progress.unlockedDifficulties = ["normal"];
+      }
+      if (state.progress.unlockedDifficulties.indexOf(nd) === -1) {
+        state.progress.unlockedDifficulties.push(nd);
+        unlockedDiff = nd;
+      }
+      state.progress.difficulty = nd;
+      applyCampaignSnapshot(state.progress.packs[nd] || freshCampaign());
+    }
+    return {
+      chapter: null,
+      difficultyUnlocked: unlockedDiff,
+      previousDifficulty: diff,
+      playthroughDone: true,
+    };
   }
 
-  function showSessionSummary(avgAcc, wasBoss, earnedXp, unlockedChapter) {
+  function showSessionSummary(
+    avgAcc,
+    wasBoss,
+    earnedXp,
+    unlockedChapter,
+    difficultyUnlocked,
+    playthroughDone,
+    previousDifficulty
+  ) {
     var cp = C.chapterProgress(state);
-    var tid = state.progress.territoryId;
     var body;
-    if (unlockedChapter) {
+    if (playthroughDone && difficultyUnlocked) {
+      body =
+        "Accuracy " +
+        Math.round(avgAcc * 100) +
+        "%. <strong>" +
+        C.difficultyLabel(previousDifficulty || "normal") +
+        "</strong> playthrough complete. Unlocked <strong>" +
+        C.difficultyLabel(difficultyUnlocked) +
+        "</strong> -- harder strings await.";
+    } else if (playthroughDone) {
+      body =
+        "Accuracy " +
+        Math.round(avgAcc * 100) +
+        "%. Hell playthrough complete. Legendary.";
+    } else if (unlockedChapter) {
       body =
         "Accuracy " +
         Math.round(avgAcc * 100) +
@@ -624,14 +867,18 @@ window.KKApp = (function () {
         "/" +
         cp.need +
         " clears toward boss" +
-        (avgAcc >= C.ACCURACY_GATE ? "." : " (this run did not count — need ≥" +
-          Math.round(C.ACCURACY_GATE * 100) +
-          "%).");
+        (avgAcc >= C.ACCURACY_GATE
+          ? "."
+          : " (this run did not count -- need ≥" +
+            Math.round(C.ACCURACY_GATE * 100) +
+            "%).");
     }
     body +=
       "<br><br>+" +
       earnedXp +
-      " XP (XP lengthens sessions; chapters unlock via clears + boss).";
+      " XP. Platinum relics this session: " +
+      sessionRelics +
+      " (new best clean line times).";
 
     showModal("Session complete", body, function () {
       showHub();
@@ -756,9 +1003,7 @@ window.KKApp = (function () {
   function doReset() {
     if (!confirm("Reset all Kinesis Quest progress?")) return;
     state = S.reset();
-    state.progress.unlocked = ["home"];
-    state.progress.clearsInChapter = 0;
-    state.progress.drillBags = {};
+    ensureProgressShape();
     S.save(state);
     showHub();
   }

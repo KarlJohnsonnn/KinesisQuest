@@ -121,10 +121,16 @@ window.KKEngine = (function () {
         .replace(/"/g, "&quot;");
     }
 
+    function elapsedMs() {
+      if (!startedAt) return 0;
+      return Date.now() - startedAt;
+    }
+
     return {
       onKeyDown: onKeyDown,
       progress: progress,
       renderSpans: renderSpans,
+      elapsedMs: elapsedMs,
       getText: function () {
         return target;
       },

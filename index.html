@@ -11,6 +11,7 @@
       <header class="topbar">
         <div class="brand">Kinesis <span>Quest</span></div>
         <div class="status-quiet">
+          <span id="stat-relics" title="Platinum relics from new best line times">0 Pt</span>
           <span id="stat-xp">0 XP</span>
           <span id="stat-streak">Streak 0</span>
           <span id="stat-duration">10 min</span>
@@ -31,6 +32,7 @@
             <button type="button" id="btn-settings">Settings / save <kbd>,</kbd></button>
           </div>
           <p class="kbd-hint">Keyboard-first: no mouse needed for hub or sessions.</p>
+          <div id="difficulty-row" class="difficulty-row" aria-label="Difficulty"></div>
         </div>
 
         <div id="chapter-progress" class="chapter-progress" aria-live="polite"></div>
@@ -62,6 +64,7 @@
             <div class="session-meta">
               <span id="session-territory">Home Wells</span>
               <span>Time <strong id="session-timer">10:00</strong></span>
+              <span>Line <strong id="line-timer">0.0s</strong></span>
               <span>Acc <strong id="session-acc">100%</strong></span>
               <span><strong id="session-wpm">0</strong> WPM</span>
             </div>

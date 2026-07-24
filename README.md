@@ -58,13 +58,13 @@ Progress is stored in `localStorage` on that browser. Export / import a JSON sav
 2. **Main drill** — varied exercise from the current chapter (shuffled pool)  
 3. **Checkpoint** — second short drill, or **Boss** when the chapter bar is full  
 
-**Chapters** unlock with **accurate practice clears** (see the hub progress bar) **+ a boss fight** — not with XP.
+**Chapters** unlock with accurate practice clears + a boss.  
+**XP** lengthens sessions. **Platinum relics** (Crash-style) reward new best clean line times.  
+**Difficulty:** Normal → Nightmare → Hell (Diablo-style). Finish a full playthrough to unlock the next; strings get denser/harder.
 
-**XP** only unlocks **longer sessions** (10 → 30 min). It does not open chapters.
+Unlock order (per difficulty):
 
-Unlock order:
-
-`Home Wells` → `Thumb Essentials` → `Near Reach` → `Number Ridge` → `Symbol Caves` → **`Write Desk`** → **`Code Forge`** → Layer Gate (stub for later remaps)
+`Home Wells` → `Thumb Essentials` → `Near Reach` → `Number Ridge` → `Symbol Caves` → **`Write Desk`** → **`Code Forge`** → Layer Gate (stub)
 
 ---
 

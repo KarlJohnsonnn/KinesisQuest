@@ -1,4 +1,4 @@
-/* Kinesis Quest curriculum — Adv360 QWERTY, writing + science coding */
+/* Kinesis Quest curriculum -- Adv360 QWERTY, writing + science coding */
 window.KKCurriculum = (function () {
   var DURATION_STEPS = [10, 12, 15, 20, 25, 30];
   var XP_PER_DURATION_STEP = 180;
@@ -16,7 +16,7 @@ window.KKCurriculum = (function () {
     {
       id: "thumbs",
       name: "Thumb Essentials",
-      blurb: "Space · Bksp · Enter — stay on keys",
+      blurb: "Space · Bksp · Enter -- stay on keys",
       keys: " ",
     },
     {
@@ -52,7 +52,7 @@ window.KKCurriculum = (function () {
     {
       id: "layers",
       name: "Layer Gate",
-      blurb: "Home-row ()[]{} @#$… layer — after stock map sticks",
+      blurb: "Home-row ()[]{} @#$… layer -- after stock map sticks",
       keys: "()[]{}@#$%^&*-_=+",
       stub: true,
     },
@@ -128,12 +128,12 @@ window.KKCurriculum = (function () {
     ],
     symbols: [
       "hi, dad.",
-      "it's fine — really.",
+      "it's fine -- really.",
       "path/to/file.nc",
       "say \"hello\" then go.",
       "Fig. 1: mean T, 850 hPa.",
-      "Hi Jane,\nthanks — see you soon.",
-      "Re: draft v2 — please reply.",
+      "Hi Jane,\nthanks -- see you soon.",
+      "Re: draft v2 -- please reply.",
       "Subject: Q3 notes / follow-up",
       "P.S. I'll send the PDF tonight.",
       "Wait... is that correct?",
@@ -146,7 +146,7 @@ window.KKCurriculum = (function () {
     write: [
       "Hi Alex,\nThanks for the update. I'll review the draft today and send comments by Friday.\nBest,\nSam",
       "Subject: Meeting notes\nHi team,\nPlease find attached the agenda for Thursday's call.\nThanks,\nJordan",
-      "hey — running 10 min late. start without me?",
+      "hey -- running 10 min late. start without me?",
       "got it, thanks! i'll send the revised figure tonight.",
       "Summarize this abstract in three bullet points for a non-expert audience.",
       "Rewrite this paragraph more concisely while keeping the scientific meaning.",
@@ -157,7 +157,7 @@ window.KKCurriculum = (function () {
       "on my way. eta 5 min.",
       "This paper argues that local moisture recycling dominates summer extremes.",
       "Please expand the introduction with one paragraph on prior work.",
-      "Hi — can we move the call to Tuesday afternoon?",
+      "Hi -- can we move the call to Tuesday afternoon?",
       "Turn these notes into a polite decline email.",
     ],
     code: [
@@ -186,7 +186,7 @@ window.KKCurriculum = (function () {
     numbers: "meeting at 14:30 on 2026-07-24; level 500",
     symbols: "Dear colleague,\nFig. 1: mean T, path/to/file.nc",
     write:
-      "Hi team,\nPlease review this draft by Friday.\nThanks — Sam\n\nSummarize the abstract in three bullets.",
+      "Hi team,\nPlease review this draft by Friday.\nThanks -- Sam\n\nSummarize the abstract in three bullets.",
     code:
       "do i = 1, n\n  x(i) = x(i) + dt\nend do\nfig, ax = plt.subplots()",
   };
@@ -226,21 +226,46 @@ window.KKCurriculum = (function () {
   function takeDrill(state, territoryId) {
     if (!state.progress.drillBags) state.progress.drillBags = {};
     var list = drillList(territoryId);
-    var bag = state.progress.drillBags[territoryId];
+    var bagKey = territoryId + ":" + (state.progress.difficulty || "normal");
+    var bag = state.progress.drillBags[bagKey];
     if (!bag || !bag.length) {
       bag = shuffleCopy(
         list.map(function (_, idx) {
           return idx;
         })
       );
-      state.progress.drillBags[territoryId] = bag;
+      state.progress.drillBags[bagKey] = bag;
     }
     var idx = bag.pop();
-    return list[idx];
+    return applyDifficulty(list[idx], state.progress.difficulty || "normal");
   }
 
-  function bossFor(territoryId) {
-    return BOSSES[territoryId] || BOSSES.home;
+  function bossFor(territoryId, difficulty) {
+    return applyDifficulty(
+      BOSSES[territoryId] || BOSSES.home,
+      difficulty || "normal"
+    );
+  }
+
+  function applyDifficulty(text, difficulty) {
+    text = String(text).replace(/\u2014/g, "--");
+    if (difficulty === "nightmare") {
+      return (
+        text +
+        "\n" +
+        "check path/to/run -- flags #1 $2 %3 and ()"
+      );
+    }
+    if (difficulty === "hell") {
+      return (
+        text +
+        "\n" +
+        text.split("\n")[0] +
+        "\n" +
+        "use ()[]{} @# $% ^& *-_ =+ -- now"
+      );
+    }
+    return text;
   }
 
   function durationForXp(xp) {
@@ -276,15 +301,87 @@ window.KKCurriculum = (function () {
     };
   }
 
+  function playableTerritoryIds() {
+    return TERRITORIES.filter(function (t) {
+      return !t.stub;
+    }).map(function (t) {
+      return t.id;
+    });
+  }
+
+  function DIFFICULTIES() {
+    return ["normal", "nightmare", "hell"];
+  }
+
+  function difficultyLabel(id) {
+    if (id === "nightmare") return "Nightmare";
+    if (id === "hell") return "Hell";
+    return "Normal";
+  }
+
+  function nextDifficulty(id) {
+    var order = DIFFICULTIES();
+    var i = order.indexOf(id || "normal");
+    if (i < 0 || i >= order.length - 1) return null;
+    return order[i + 1];
+  }
+
+  /**
+   * Varied warm-up: at least 4 distinct chars, shuffled, no long same-char runs.
+   */
   function warmupFromWeak(weakChars) {
-    var pool = (weakChars && weakChars.length ? weakChars : "asdfjkl;").slice(0, 12);
-    var out = [];
-    var i;
-    for (i = 0; i < 36; i++) {
-      out.push(pool[i % pool.length]);
-      if ((i + 1) % 4 === 0) out.push(" ");
+    var base = "asdfjkl;eiruowcmn";
+    var seen = {};
+    var pool = [];
+    function addChar(ch) {
+      if (!ch || ch === "\n" || ch === "\b") return;
+      if (ch.length !== 1) return;
+      if (seen[ch]) return;
+      seen[ch] = true;
+      pool.push(ch);
     }
-    return out.join("").trim() || WARMUP_FALLBACK;
+    (weakChars || []).forEach(addChar);
+    var bi;
+    for (bi = 0; bi < base.length; bi++) addChar(base.charAt(bi));
+    while (pool.length < 4) addChar(base.charAt(pool.length % base.length));
+    pool = shuffleCopy(pool).slice(0, Math.min(8, pool.length));
+
+    var out = [];
+    var last = "";
+    var i;
+    for (i = 0; i < 40; i++) {
+      var pick = pool[Math.floor(Math.random() * pool.length)];
+      var guard = 0;
+      while (pick === last && pool.length > 1 && guard < 8) {
+        pick = pool[Math.floor(Math.random() * pool.length)];
+        guard += 1;
+      }
+      out.push(pick);
+      last = pick;
+      if ((i + 1) % (2 + (i % 3)) === 0) {
+        out.push(" ");
+        last = "";
+      }
+    }
+    var text = out.join("").replace(/\s+/g, " ").trim();
+    var uniq = {};
+    var ui;
+    for (ui = 0; ui < text.length; ui++) {
+      var c = text.charAt(ui);
+      if (c !== " ") uniq[c] = true;
+    }
+    if (Object.keys(uniq).length < 3) return WARMUP_FALLBACK;
+    return text || WARMUP_FALLBACK;
+  }
+
+  function hashText(text) {
+    var s = String(text);
+    var h = 0;
+    var i;
+    for (i = 0; i < s.length; i++) {
+      h = (h * 31 + s.charCodeAt(i)) | 0;
+    }
+    return String(h);
   }
 
   return {
@@ -301,9 +398,15 @@ window.KKCurriculum = (function () {
     nextTerritoryId: nextTerritoryId,
     takeDrill: takeDrill,
     bossFor: bossFor,
+    applyDifficulty: applyDifficulty,
     durationForXp: durationForXp,
     xpToNextDuration: xpToNextDuration,
     chapterProgress: chapterProgress,
     warmupFromWeak: warmupFromWeak,
+    playableTerritoryIds: playableTerritoryIds,
+    DIFFICULTIES: DIFFICULTIES,
+    difficultyLabel: difficultyLabel,
+    nextDifficulty: nextDifficulty,
+    hashText: hashText,
   };
 })();

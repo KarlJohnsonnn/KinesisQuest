@@ -213,6 +213,59 @@ button.ghost {
   margin: 1.75rem 0 1rem;
 }
 
+.difficulty-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.difficulty-row button {
+  min-width: 6.5rem;
+  font-size: 0.85rem;
+  padding: 0.55rem 0.8rem;
+}
+
+.difficulty-row button.active {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: #1a1208;
+}
+
+.difficulty-row button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.platinum-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 40%, rgba(210, 230, 255, 0.28), transparent 55%);
+  animation: fade-in 0.2s ease;
+}
+
+.platinum-flash .relic {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.4rem, 4vw, 2.2rem);
+  color: #e8f2ff;
+  text-shadow: 0 0 18px rgba(180, 210, 255, 0.8);
+  border: 2px solid #c5d8f0;
+  background: rgba(20, 30, 42, 0.85);
+  padding: 0.9rem 1.3rem;
+  border-radius: 12px;
+}
+
+#stat-relics {
+  color: #c5d8f0;
+}
+
 .chapter-progress {
   background: var(--bg1);
   border: 1px solid var(--line);

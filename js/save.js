@@ -14,6 +14,10 @@ window.KKSave = (function () {
         passedSessions: 0,
         clearsInChapter: 0,
         drillBags: {},
+        difficulty: "normal",
+        unlockedDifficulties: ["normal"],
+        completedDifficulties: [],
+        packs: {},
       },
       stats: {
         accuracyHistory: [],
@@ -23,6 +27,8 @@ window.KKSave = (function () {
         totalChars: 0,
         totalMisses: 0,
         xp: 0,
+        bestTimes: {},
+        platinumRelics: 0,
       },
       sessionPlan: {
         targetDurationMin: 10,
