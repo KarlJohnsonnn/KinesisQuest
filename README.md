@@ -72,11 +72,14 @@ Unlock order (per difficulty):
 
 | Where | Keys |
 |-------|------|
-| Hub | `Enter` / `c` continue · `,` / `s` settings |
+| Anywhere | `Right GUI+S` quicksave · `Right GUI+1` Hub · `Right GUI+2` Settings · `Right GUI+3` Quest |
+| Hub | `Enter` / `c` continue · `,` settings |
 | Tip panel | `Enter` dismiss + start |
 | Session | `Ctrl+Shift+P` Pain Stop · `Ctrl+Shift+E` End |
 | Settings | `Esc` back · `Ctrl+Enter` start paste drill |
 | Summary modal | `Enter` / `Esc` |
+
+`Right GUI` = right Command on Mac / right Win-key on PC (Adv360 right GUI).
 
 **Paste drill:** drop a real email, prompt, paragraph, or code snippet in Settings and practice transfer to real work.
 

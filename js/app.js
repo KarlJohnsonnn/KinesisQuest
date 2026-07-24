@@ -17,6 +17,7 @@ window.KKApp = (function () {
   var lineTimerId = null;
   var sessionRelics = 0;
   var lastPlatinumNote = null;
+  var rightGuiDown = false;
 
   var el = {};
 
@@ -92,6 +93,84 @@ window.KKApp = (function () {
     $("chk-guide").addEventListener("change", syncSettings);
     $("chk-motion").addEventListener("change", syncSettings);
     window.addEventListener("keydown", onKey, true);
+    window.addEventListener("keyup", onKeyUp, true);
+    window.addEventListener("blur", function () {
+      rightGuiDown = false;
+    });
+  }
+
+  function isRightGuiCode(code) {
+    return code === "MetaRight" || code === "OSRight";
+  }
+
+  function onKeyUp(e) {
+    if (isRightGuiCode(e.code)) rightGuiDown = false;
+  }
+
+  function quickSave() {
+    S.save(state);
+    showPlatinumFlash("Quicksave");
+  }
+
+  /** Leave active session without scoring, then run fn. */
+  function leaveSessionThen(fn) {
+    if (!el.session.classList.contains("hidden") && engine) {
+      stopListening();
+      clearTimer();
+      engine = null;
+      phase = null;
+    }
+    fn();
+  }
+
+  function goTab(n) {
+    if (n === 1) {
+      leaveSessionThen(showHub);
+      return;
+    }
+    if (n === 2) {
+      leaveSessionThen(showSettings);
+      return;
+    }
+    if (n === 3) {
+      if (!el.overlay.classList.contains("hidden")) {
+        el.overlay.classList.add("hidden");
+      }
+      if (!el.session.classList.contains("hidden")) return;
+      startSession();
+    }
+  }
+
+  function handleRightGuiChord(e) {
+    if (!rightGuiDown && !isRightGuiCode(e.code)) return false;
+    if (isRightGuiCode(e.code)) {
+      rightGuiDown = true;
+      return true; // consume alone; wait for partner key
+    }
+    if (!rightGuiDown) return false;
+
+    var k = e.key;
+    var digit = null;
+    if (k >= "1" && k <= "9") digit = Number(k);
+    else if (e.code && e.code.indexOf("Digit") === 0) {
+      digit = Number(e.code.slice(5));
+    } else if (e.code && e.code.indexOf("Numpad") === 0) {
+      digit = Number(e.code.slice(6));
+    }
+
+    if (k === "s" || k === "S") {
+      e.preventDefault();
+      e.stopPropagation();
+      quickSave();
+      return true;
+    }
+    if (digit >= 1 && digit <= 9) {
+      e.preventDefault();
+      e.stopPropagation();
+      goTab(digit);
+      return true;
+    }
+    return false;
   }
 
   function applySettings() {
@@ -563,6 +642,9 @@ window.KKApp = (function () {
   }
 
   function onKey(e) {
+    if (isRightGuiCode(e.code)) rightGuiDown = true;
+    if (handleRightGuiChord(e)) return;
+
     var tag = (e.target && e.target.tagName) || "";
     var typingInField = tag === "TEXTAREA" || tag === "INPUT";
 
@@ -618,7 +700,6 @@ window.KKApp = (function () {
         S.save(state);
         tip.classList.add("hidden");
         if (e.key === "Escape") return;
-        // Enter after dismiss can continue — fall through only if still Enter desire: start
         startSession();
         return;
       }
@@ -626,6 +707,8 @@ window.KKApp = (function () {
         e.preventDefault();
         startSession();
       } else if (e.key === "," || e.key === "s" || e.key === "S") {
+        // plain s = settings only when not using RGUI (handled above)
+        if (rightGuiDown) return;
         e.preventDefault();
         showSettings();
       }
