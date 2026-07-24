@@ -7,7 +7,6 @@ LaTeX), keyboard-first (minimize mouse).
 ## Run
 
 ```bash
-cd "/Users/schimmel/Library/Mobile Documents/com~apple~CloudDocs/code/projects/private/AdvantageProTutor"
 python3 -m http.server 8765
 ```
 
