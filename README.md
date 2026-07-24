@@ -114,8 +114,10 @@ PRs and issues welcome — especially from new Kinesis users sharing what confus
 
 ---
 
-## License / credit
+## License
 
-Personal learning tool shared so other Adv360 users can get productive faster. If you fork it, keep the pain-aware session design.
+Released under the [MIT License](LICENSE).
+
+Shared so other Adv360 users can get productive faster. If you fork it, keep the pain-aware session design.
 
 **Hardware:** [Kinesis Advantage360](https://kinesis-ergo.com/) · firmware notes often live in the [Adv360-Pro-ZMK](https://github.com/KinesisCorporation/Adv360-Pro-ZMK) ecosystem.
