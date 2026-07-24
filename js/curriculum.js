@@ -1,4 +1,4 @@
-/* Kinesis Quest curriculum — Adv360 QWERTY, atmospheric-scientist stack */
+/* Kinesis Quest curriculum — Adv360 QWERTY, writing + science coding */
 window.KKCurriculum = (function () {
   var DURATION_STEPS = [10, 12, 15, 20, 25, 30];
   var SESSIONS_PER_DURATION_UP = 3;
@@ -38,6 +38,12 @@ window.KKCurriculum = (function () {
       keys: ".,-/'\":",
     },
     {
+      id: "write",
+      name: "Write Desk",
+      blurb: "Mail · SMS · LLM prompts · articles",
+      keys: "abcdefghijklmnopqrstuvwxyz .,!?'-",
+    },
+    {
       id: "code",
       name: "Code Forge",
       blurb: "Fortran · Python · bash · md · LaTeX",
@@ -73,6 +79,9 @@ window.KKCurriculum = (function () {
       "tropopause height trend",
       "reanalysis grid point",
       "moisture transport right now",
+      "please review this draft",
+      "thanks for your quick reply",
+      "write the next paragraph here",
     ],
     numbers: [
       "123 456 789 0",
@@ -80,6 +89,9 @@ window.KKCurriculum = (function () {
       "year 2026 level 500",
       "dt = 0.25\nnz = 32",
       "era5 1940-2024",
+      "meeting at 14:30 on 2026-07-24",
+      "call at 09:15 on 2026-08-01",
+      "deadline 17:00 on 2026-09-30",
     ],
     symbols: [
       "hi, dad.",
@@ -87,6 +99,20 @@ window.KKCurriculum = (function () {
       "path/to/file.nc",
       "say \"hello\" then go.",
       "Fig. 1: mean T, 850 hPa.",
+      "Hi Jane,\nthanks — see you soon.",
+      "Re: draft v2 — please reply.",
+      "Subject: Q3 notes / follow-up",
+      "P.S. I'll send the PDF tonight.",
+    ],
+    write: [
+      "Hi Alex,\nThanks for the update. I'll review the draft today and send comments by Friday.\nBest,\nSam",
+      "Subject: Meeting notes\nHi team,\nPlease find attached the agenda for Thursday's call.\nThanks,\nJordan",
+      "hey — running 10 min late. start without me?",
+      "got it, thanks! i'll send the revised figure tonight.",
+      "Summarize this abstract in three bullet points for a non-expert audience.",
+      "Rewrite this paragraph more concisely while keeping the scientific meaning.",
+      "Moisture transport across the tropopause remains a key uncertainty in reanalysis products.",
+      "We find a statistically significant trend in mid-tropospheric humidity over 1980-2020.",
     ],
     code: [
       "do i = 1, n\n  x(i) = x(i) + dt\nend do",
@@ -105,6 +131,8 @@ window.KKCurriculum = (function () {
     near: "water vapor pathway grew right",
     numbers: "era5 1940-2024 level 500",
     symbols: "Fig. 1: mean T, path/to/file.nc",
+    write:
+      "Hi team,\nPlease review this draft by Friday.\nThanks — Sam",
     code:
       "do i = 1, n\n  x(i) = x(i) + dt\nend do\nfig, ax = plt.subplots()",
   };

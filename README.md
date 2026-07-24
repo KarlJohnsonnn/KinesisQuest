@@ -1,12 +1,13 @@
-# Kinesis Quest
+# AdvantageProTutor (Kinesis Quest)
 
-HTML trainer for Advantage360 Pro muscle memory — tuned for atmospheric science coding
-(Fortran, Python, bash, Markdown, LaTeX) and keyboard-first use (minimize mouse).
+HTML trainer for Advantage360 Pro muscle memory — everyday writing (mail, SMS, LLM
+prompts, articles) plus atmospheric science coding (Fortran, Python, bash, Markdown,
+LaTeX), keyboard-first (minimize mouse).
 
 ## Run
 
 ```bash
-cd kk-quest
+cd "/Users/schimmel/Library/Mobile Documents/com~apple~CloudDocs/code/projects/private/AdvantageProTutor"
 python3 -m http.server 8765
 ```
 
@@ -22,4 +23,4 @@ Open http://localhost:8765
 | Settings | `Esc` hub · `Ctrl+Enter` paste drill |
 | Urge prompt | `1`–`5` · `Esc` skip |
 
-Type on the **physical KK**. Paste real model/plot/shell/LaTeX snippets in Settings.
+Type on the **physical KK**. Paste real writing or model/plot/shell/LaTeX snippets in Settings.
