@@ -55,9 +55,12 @@ Progress is stored in `localStorage` on that browser. Export / import a JSON sav
 ## How a session works
 
 1. **Warm-up** — keys you’ve been missing  
-2. **Main drill** — current territory (writing or coding content as you unlock)  
-3. **Checkpoint** (or occasional **boss**)  
-4. Optional **MB urge** check — how strong is the pull back to the old keyboard?
+2. **Main drill** — varied exercise from the current chapter (shuffled pool)  
+3. **Checkpoint** — second short drill, or **Boss** when the chapter bar is full  
+
+**Chapters** unlock with **accurate practice clears** (see the hub progress bar) **+ a boss fight** — not with XP.
+
+**XP** only unlocks **longer sessions** (10 → 30 min). It does not open chapters.
 
 Unlock order:
 
@@ -73,7 +76,7 @@ Unlock order:
 | Tip panel | `Enter` dismiss + start |
 | Session | `Ctrl+Shift+P` Pain Stop · `Ctrl+Shift+E` End |
 | Settings | `Esc` back · `Ctrl+Enter` start paste drill |
-| After session | `1`–`5` MB-urge · `Esc` skip |
+| Summary modal | `Enter` / `Esc` |
 
 **Paste drill:** drop a real email, prompt, paragraph, or code snippet in Settings and practice transfer to real work.
 

@@ -7,11 +7,13 @@ window.KKSave = (function () {
       version: 1,
       progress: {
         territoryId: "home",
-        unlocked: ["home", "thumbs"],
+        unlocked: ["home"],
         completed: [],
         sessionIndex: 0,
         lastDrillId: null,
         passedSessions: 0,
+        clearsInChapter: 0,
+        drillBags: {},
       },
       stats: {
         accuracyHistory: [],
@@ -26,7 +28,6 @@ window.KKSave = (function () {
         targetDurationMin: 10,
         lastCompletedAt: null,
         streak: 0,
-        mbUrgeHistory: [],
       },
       settings: {
         sound: false,

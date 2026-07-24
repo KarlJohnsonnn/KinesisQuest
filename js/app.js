@@ -23,11 +23,12 @@ window.KKApp = (function () {
   function init() {
     state = S.load();
     if (!state.progress.unlocked || state.progress.unlocked.length === 0) {
-      state.progress.unlocked = ["home", "thumbs"];
+      state.progress.unlocked = ["home"];
     }
-    if (state.progress.unlocked.indexOf("thumbs") === -1) {
-      state.progress.unlocked.push("thumbs");
+    if (typeof state.progress.clearsInChapter !== "number") {
+      state.progress.clearsInChapter = 0;
     }
+    if (!state.progress.drillBags) state.progress.drillBags = {};
     cacheEls();
     bind();
     applySettings();
@@ -111,9 +112,19 @@ window.KKApp = (function () {
   }
 
   function renderHub() {
-    el.xp.textContent = state.stats.xp + " XP";
+    var xp = state.stats.xp || 0;
+    var durInfo = C.xpToNextDuration(xp);
+    el.xp.textContent = xp + " XP";
+    el.xp.title =
+      "XP unlocks longer sessions (not chapters). Next length at " +
+      (durInfo.nextMin
+        ? durInfo.need + " XP → " + durInfo.nextMin + " min"
+        : "max");
     el.streak.textContent = "Streak " + state.sessionPlan.streak;
-    el.duration.textContent = state.sessionPlan.targetDurationMin + " min";
+    el.duration.textContent = durInfo.currentMin + " min";
+
+    renderChapterProgress();
+
     el.map.innerHTML = "";
     C.TERRITORIES.forEach(function (t) {
       var div = document.createElement("div");
@@ -121,7 +132,24 @@ window.KKApp = (function () {
       if (state.progress.unlocked.indexOf(t.id) !== -1) div.classList.add("unlocked");
       if (state.progress.completed.indexOf(t.id) !== -1) div.classList.add("done");
       if (state.progress.territoryId === t.id) div.classList.add("current");
-      div.innerHTML = "<h3>" + t.name + "</h3><p>" + t.blurb + "</p>";
+      var gate = "";
+      if (t.stub) {
+        gate = '<div class="gate">Coming later</div>';
+      } else if (state.progress.completed.indexOf(t.id) !== -1) {
+        gate = '<div class="gate">Cleared</div>';
+      } else if (state.progress.territoryId === t.id) {
+        var cp = C.chapterProgress(state);
+        gate = cp.readyBoss
+          ? '<div class="gate">Boss ready → next chapter</div>'
+          : '<div class="gate">' +
+            cp.clears +
+            "/" +
+            cp.need +
+            " clears → boss</div>";
+      } else if (state.progress.unlocked.indexOf(t.id) === -1) {
+        gate = '<div class="gate">Locked</div>';
+      }
+      div.innerHTML = "<h3>" + t.name + "</h3><p>" + t.blurb + "</p>" + gate;
       el.map.appendChild(div);
     });
     var tip = $("tip-panel");
@@ -134,19 +162,80 @@ window.KKApp = (function () {
     };
   }
 
+  function renderChapterProgress() {
+    var box = $("chapter-progress");
+    if (!box) return;
+    var tid = state.progress.territoryId || "home";
+    var name = territoryName(tid);
+    var next = C.nextTerritoryId(tid);
+    var nextName = next ? territoryName(next) : null;
+    var cp = C.chapterProgress(state);
+    var xp = state.stats.xp || 0;
+    var durInfo = C.xpToNextDuration(xp);
+    var pct = Math.round(cp.ratio * 100);
+
+    box.classList.toggle("boss-ready", cp.readyBoss);
+    var status;
+    if (cp.readyBoss) {
+      status =
+        "Boss ready. Next Continue fights the chapter boss" +
+        (nextName ? " to unlock <strong>" + nextName + "</strong>" : "") +
+        ".";
+    } else {
+      status =
+        "Clear <strong>" +
+        cp.need +
+        "</strong> accurate practice runs (≥" +
+        Math.round(C.ACCURACY_GATE * 100) +
+        "%), then beat the boss to open the next chapter.";
+    }
+
+    box.innerHTML =
+      "<h2>Chapter: " +
+      name +
+      "</h2>" +
+      '<p class="meta">' +
+      status +
+      "</p>" +
+      '<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' +
+      pct +
+      '"><span style="width:' +
+      pct +
+      '%"></span></div>' +
+      '<p class="meta" style="margin-top:0.55rem">' +
+      cp.clears +
+      " / " +
+      cp.need +
+      " practice clears" +
+      (cp.readyBoss ? " · boss queued" : "") +
+      "</p>" +
+      '<p class="xp-note">XP ' +
+      xp +
+      " → session length " +
+      durInfo.currentMin +
+      " min" +
+      (durInfo.nextMin
+        ? " · " + durInfo.remaining + " XP to " + durInfo.nextMin + " min"
+        : " · max length") +
+      ". Chapters unlock by clears + boss, not XP.</p>";
+  }
+
   function startSession() {
     var tid = state.progress.territoryId || "home";
     var tmeta = C.TERRITORIES[C.territoryIndex(tid)];
     if (tmeta && tmeta.stub) {
-      state.progress.territoryId = "symbols";
-      tid = "symbols";
+      state.progress.territoryId = "write";
+      tid = "write";
+    }
+    if (typeof state.progress.clearsInChapter !== "number") {
+      state.progress.clearsInChapter = 0;
     }
 
     sessionStartedAt = Date.now();
     breakNudged = false;
     sessionAcc = [];
     phaseStats = { hits: 0, misses: 0 };
-    state.sessionPlan.targetDurationMin = C.durationFor(state.progress.passedSessions);
+    state.sessionPlan.targetDurationMin = C.durationForXp(state.stats.xp || 0);
 
     el.hub.classList.add("hidden");
     el.settings.classList.add("hidden");
@@ -166,19 +255,27 @@ window.KKApp = (function () {
     phase = name;
     var tid = state.progress.territoryId || "home";
     var text = "";
+    var cp = C.chapterProgress(state);
+    var doBoss = name === "boss" || (name === "main" && cp.readyBoss);
+
+    if (doBoss && name !== "warmup") {
+      phase = "boss";
+      name = "boss";
+    }
 
     if (name === "warmup") {
       el.phase.textContent = "Warm-up · weak keys";
       text = C.warmupFromWeak(S.weakCharsForWarmup(state));
     } else if (name === "main") {
       el.phase.textContent = "Main drill · " + territoryName(tid);
-      text = C.drillFor(tid, state.progress.sessionIndex);
+      text = C.takeDrill(state, tid);
       state.progress.lastDrillId = tid + ":" + state.progress.sessionIndex;
     } else if (name === "checkpoint") {
-      el.phase.textContent = "Checkpoint";
-      text = C.drillFor(tid, state.progress.sessionIndex + 1).slice(0, 48);
+      el.phase.textContent = "Checkpoint · variety";
+      text = C.takeDrill(state, tid);
+      if (text.length > 72) text = text.slice(0, 72);
     } else if (name === "boss") {
-      el.phase.textContent = "Boss · " + territoryName(tid);
+      el.phase.textContent = "Boss · unlock next chapter";
       text = C.bossFor(tid);
     }
 
@@ -216,12 +313,12 @@ window.KKApp = (function () {
 
   function nextPhase() {
     if (phase === "warmup") {
-      beginPhase("main");
+      var cp = C.chapterProgress(state);
+      beginPhase(cp.readyBoss ? "boss" : "main");
       return;
     }
     if (phase === "main") {
-      if (C.isBossSession(state.progress.sessionIndex)) beginPhase("boss");
-      else beginPhase("checkpoint");
+      beginPhase("checkpoint");
       return;
     }
     // checkpoint or boss → end
@@ -370,27 +467,10 @@ window.KKApp = (function () {
       showHub();
       return;
     }
-    var urgeSkip = $("urge-skip");
     var modalOk = $("modal-ok");
-    if (/^[1-5]$/.test(e.key) && $("urge-btns")) {
-      e.preventDefault();
-      state.sessionPlan.mbUrgeHistory.push({
-        at: new Date().toISOString(),
-        urge: Number(e.key),
-      });
-      S.save(state);
-      el.overlay.classList.add("hidden");
-      showHub();
-      return;
-    }
     if ((e.key === "Enter" || e.key === " ") && modalOk) {
       e.preventDefault();
       modalOk.click();
-      return;
-    }
-    if ((e.key === "Enter" || e.key === " ") && urgeSkip && !modalOk) {
-      e.preventDefault();
-      urgeSkip.click();
     }
   }
 
@@ -445,24 +525,29 @@ window.KKApp = (function () {
             return a + b;
           }, 0) / sessionAcc.length;
 
+    var unlockedChapter = null;
+    var earnedXp = 0;
+
     if (completed && !pain) {
       state.progress.sessionIndex += 1;
-      state.stats.xp += Math.round(40 + avgAcc * 60);
+      earnedXp = Math.round(40 + avgAcc * 60);
+      state.stats.xp += earnedXp;
       state.stats.accuracyHistory.push(Math.round(avgAcc * 1000) / 1000);
       state.sessionPlan.lastCompletedAt = new Date().toISOString();
       state.sessionPlan.streak += 1;
+      state.sessionPlan.targetDurationMin = C.durationForXp(state.stats.xp);
 
-      var gate = wasBoss ? C.BOSS_ACCURACY : C.ACCURACY_GATE;
-      if (avgAcc >= gate) {
+      if (wasBoss) {
+        if (avgAcc >= C.BOSS_ACCURACY) {
+          unlockedChapter = completeChapter();
+        }
+      } else if (avgAcc >= C.ACCURACY_GATE) {
         state.progress.passedSessions += 1;
-        state.sessionPlan.targetDurationMin = C.durationFor(
-          state.progress.passedSessions
-        );
-        maybeUnlock(wasBoss, avgAcc);
+        state.progress.clearsInChapter = (state.progress.clearsInChapter || 0) + 1;
       }
     } else if (pain) {
-      // streak preserved
       state.stats.xp += 5;
+      earnedXp = 5;
     }
 
     S.save(state);
@@ -483,72 +568,72 @@ window.KKApp = (function () {
       return;
     }
 
-    askUrge(avgAcc, wasBoss);
+    showSessionSummary(avgAcc, wasBoss, earnedXp, unlockedChapter);
   }
 
-  function maybeUnlock(wasBoss, avgAcc) {
+  function completeChapter() {
     var tid = state.progress.territoryId;
-    if (wasBoss && avgAcc >= C.BOSS_ACCURACY) {
-      if (state.progress.completed.indexOf(tid) === -1) {
-        state.progress.completed.push(tid);
+    if (state.progress.completed.indexOf(tid) === -1) {
+      state.progress.completed.push(tid);
+    }
+    state.progress.clearsInChapter = 0;
+    var next = C.nextTerritoryId(tid);
+    if (next) {
+      if (state.progress.unlocked.indexOf(next) === -1) {
+        state.progress.unlocked.push(next);
       }
-      var next = C.nextTerritoryId(tid);
-      if (next) {
-        if (state.progress.unlocked.indexOf(next) === -1) {
-          state.progress.unlocked.push(next);
-        }
-        state.progress.territoryId = next;
-      }
-      return;
+      state.progress.territoryId = next;
+      return next;
     }
-    // Soft advance home → thumbs early without boss if enough passes
-    if (
-      tid === "home" &&
-      state.progress.passedSessions >= 1 &&
-      state.progress.unlocked.indexOf("thumbs") !== -1 &&
-      state.progress.completed.indexOf("home") === -1
-    ) {
-      // stay on home until boss, but thumbs already unlocked for map
-    }
-    if (
-      tid === "home" &&
-      state.progress.sessionIndex >= 2 &&
-      avgAcc >= C.ACCURACY_GATE
-    ) {
-      state.progress.territoryId = "thumbs";
-    }
+    return null;
   }
 
-  function askUrge(avgAcc, wasBoss) {
-    el.overlay.classList.remove("hidden");
-    el.modal.innerHTML =
-      "<h2>Session complete</h2>" +
-      "<p>Accuracy " +
-      Math.round(avgAcc * 100) +
-      "%." +
-      (wasBoss ? " Boss fought." : "") +
-      " How strong is the pull to switch back to the MacBook keyboard? (1 = none, 5 = strong). Keys: 1–5 or Esc.</p>" +
-      '<div class="urge-row" id="urge-btns"></div>' +
-      '<button type="button" class="ghost" id="urge-skip">Skip</button>';
+  function showSessionSummary(avgAcc, wasBoss, earnedXp, unlockedChapter) {
+    var cp = C.chapterProgress(state);
+    var tid = state.progress.territoryId;
+    var body;
+    if (unlockedChapter) {
+      body =
+        "Accuracy " +
+        Math.round(avgAcc * 100) +
+        "%. Boss cleared. Chapter unlocked: <strong>" +
+        territoryName(unlockedChapter) +
+        "</strong>.";
+    } else if (wasBoss) {
+      body =
+        "Accuracy " +
+        Math.round(avgAcc * 100) +
+        "%. Boss not cleared yet (need ≥" +
+        Math.round(C.BOSS_ACCURACY * 100) +
+        "%). Try again when ready.";
+    } else if (cp.readyBoss) {
+      body =
+        "Accuracy " +
+        Math.round(avgAcc * 100) +
+        "%. Practice clears done (" +
+        cp.clears +
+        "/" +
+        cp.need +
+        "). Next Continue = chapter boss.";
+    } else {
+      body =
+        "Accuracy " +
+        Math.round(avgAcc * 100) +
+        "%. Chapter progress " +
+        cp.clears +
+        "/" +
+        cp.need +
+        " clears toward boss" +
+        (avgAcc >= C.ACCURACY_GATE ? "." : " (this run did not count — need ≥" +
+          Math.round(C.ACCURACY_GATE * 100) +
+          "%).");
+    }
+    body +=
+      "<br><br>+" +
+      earnedXp +
+      " XP (XP lengthens sessions; chapters unlock via clears + boss).";
 
-    var row = $("urge-btns");
-    [1, 2, 3, 4, 5].forEach(function (n) {
-      var b = document.createElement("button");
-      b.type = "button";
-      b.textContent = String(n);
-      b.addEventListener("click", function () {
-        state.sessionPlan.mbUrgeHistory.push({
-          at: new Date().toISOString(),
-          urge: n,
-        });
-        S.save(state);
-        el.overlay.classList.add("hidden");
-        showHub();
-      });
-      row.appendChild(b);
-    });
-    $("urge-skip").addEventListener("click", function () {
-      el.overlay.classList.add("hidden");
+    showModal("Session complete", body, function () {
       showHub();
     });
   }
@@ -671,7 +756,9 @@ window.KKApp = (function () {
   function doReset() {
     if (!confirm("Reset all Kinesis Quest progress?")) return;
     state = S.reset();
-    state.progress.unlocked = ["home", "thumbs"];
+    state.progress.unlocked = ["home"];
+    state.progress.clearsInChapter = 0;
+    state.progress.drillBags = {};
     S.save(state);
     showHub();
   }

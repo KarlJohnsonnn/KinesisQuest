@@ -213,6 +213,60 @@ button.ghost {
   margin: 1.75rem 0 1rem;
 }
 
+.chapter-progress {
+  background: var(--bg1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  margin-top: 1.25rem;
+}
+
+.chapter-progress h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.chapter-progress .meta {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.4;
+  margin: 0 0 0.65rem;
+}
+
+.chapter-progress .bar {
+  height: 10px;
+  background: var(--bg0);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+
+.chapter-progress .bar > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--amber-dim), var(--amber));
+  width: 0%;
+  transition: width 0.35s ease;
+}
+
+.chapter-progress.boss-ready {
+  border-color: var(--amber);
+}
+
+.chapter-progress .xp-note {
+  margin: 0.7rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+
+.territory .gate {
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--amber);
+  font-family: var(--font-mono);
+}
+
 .territory {
   background: var(--bg1);
   border: 1px solid var(--line);
